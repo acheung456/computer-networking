@@ -10,7 +10,7 @@ def smtp_client(port=1025, mailserver='127.0.0.1'):
    # Create socket called clientSocket and establish a TCP connection with mailserver and port
 
    clientSocket = socket(AF_INET, SOCK_STREAM)
-   clientSocket.connect(mailserver, port)
+   clientSocket.connect((mailserver, port))
 
 
    recv = clientSocket.recv(1024).decode()
@@ -29,19 +29,19 @@ def smtp_client(port=1025, mailserver='127.0.0.1'):
        #print('250 reply not received from server.')
 
    # Send MAIL FROM command and print server response.
-   clientSocket.send("MAIL FROM:johnnyappleseed\r\n".encode())
+   clientSocket.send("MAIL FROM:<johnnyappleseed@apple.com>\r\n".encode())
    recv2 = clientSocket.recv(1024).decode()
-   #print(recv2)
+#    print(recv2)
 
    # Send RCPT TO command and print server response.
-   clientSocket.send("RCPT TO:johnnyappleseed\r\n".encode())
+   clientSocket.send("RCPT TO:<johnnyappleseed@apple.com>\r\n".encode())
    recv3 = clientSocket.recv(1024).decode()
-   #print(recv3)
+#    print(recv3)
 
    # Send DATA command and print server response.
    clientSocket.send("DATA\r\n".encode())
    recv4 = clientSocket.recv(1024).decode()
-   #print(recv4)
+#    print(recv4)
 
    # Send message data.
    clientSocket.send("Subject: Would be weird without one\r\n\r\n".encode())
@@ -60,4 +60,5 @@ def smtp_client(port=1025, mailserver='127.0.0.1'):
 
 
 if __name__ == '__main__':
+#    smtp_client(25, 'mail.netscantools.com')
    smtp_client(1025, '127.0.0.1')
