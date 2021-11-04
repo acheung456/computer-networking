@@ -1,64 +1,126 @@
 from socket import *
+import os
+import sys
+import struct
+import time
+import select
+import binascii
+# Should use stdev
+
+ICMP_ECHO_REQUEST = 8
+
+def checksum(string):
+   csum = 0
+   countTo = (len(string) // 2) * 2
+   count = 0
+
+   while count < countTo:
+       thisVal = (string[count + 1]) * 256 + (string[count])
+       csum += thisVal
+       csum &= 0xffffffff
+       count += 2
+
+   if countTo < len(string):
+       csum += (string[len(string) - 1])
+       csum &= 0xffffffff
+
+   csum = (csum >> 16) + (csum & 0xffff)
+   csum = csum + (csum >> 16)
+   answer = ~csum
+   answer = answer & 0xffff
+   answer = answer >> 8 | (answer << 8 & 0xff00)
+   return answer
 
 
-def smtp_client(port=1025, mailserver='127.0.0.1'):
-   msg = "\r\n My message"
-   endmsg = "\r\n.\r\n"
+def _get_icmp_header(packet):
+    # Grab ICMP header IP(20) -> ICMP(8)
+    return packet[20:28]
 
-   # Choose a mail server (e.g. Google mail server) if you want to verify the script beyond GradeScope
+def receiveOnePing(mySocket, ID, timeout, destAddr):
+   timeLeft = timeout
 
-   # Create socket called clientSocket and establish a TCP connection with mailserver and port
+   while 1:
+       startedSelect = time.time()
+       whatReady = select.select([mySocket], [], [], timeLeft)
+       howLongInSelect = (time.time() - startedSelect)
+       if whatReady[0] == []:  # Timeout
+           return "Request timed out."
 
-   clientSocket = socket(AF_INET, SOCK_STREAM)
-   clientSocket.connect((mailserver, port))
+       timeReceived = time.time()
+       recPacket, addr = mySocket.recvfrom(1024)
 
+       # Fill in start
 
-   recv = clientSocket.recv(1024).decode()
-#    print(recv)
-   if recv[:3] != '220':
-       pass
-       #print('220 reply not received from server.')
+       icmp_header = _get_icmp_header(recPacket)
+       icmp_type, _, _, packet_id, _ = struct.unpack("bbHHh", icmp_header)
 
-   # Send HELO command and print server response.
-   heloCommand = 'HELO Alice\r\n'
-   clientSocket.send(heloCommand.encode())
-   recv1 = clientSocket.recv(1024).decode()
-#    print(recv1)
-   if recv1[:3] != '250':
-       pass
-       #print('250 reply not received from server.')
+       if icmp_type != ICMP_ECHO_REQUEST and packet_id == ID:
+         double_bytes = struct.calcsize("d")
+         time_sent = struct.unpack("d", recPacket[28:28 + double_bytes])[0]
+         return timeReceived - time_sent
 
-   # Send MAIL FROM command and print server response.
-   clientSocket.send("MAIL FROM:<johnnyappleseed@apple.com>\r\n".encode())
-   recv2 = clientSocket.recv(1024).decode()
-#    print(recv2)
-
-   # Send RCPT TO command and print server response.
-   clientSocket.send("RCPT TO:<johnnyappleseed@apple.com>\r\n".encode())
-   recv3 = clientSocket.recv(1024).decode()
-#    print(recv3)
-
-   # Send DATA command and print server response.
-   clientSocket.send("DATA\r\n".encode())
-   recv4 = clientSocket.recv(1024).decode()
-#    print(recv4)
-
-   # Send message data.
-   clientSocket.send("Subject: Would be weird without one\r\n\r\n".encode())
-   clientSocket.send("Wed, 12 April 1989 11:00:00\r\n\r\n".encode())
-   clientSocket.send(msg.encode())
+       # Fill in end
+       timeLeft = timeLeft - howLongInSelect
+       if timeLeft <= 0:
+           return "Request timed out."
 
 
-   # Message ends with a single period.
-   clientSocket.send(endmsg.encode())
-   recv5 = clientSocket.recv(1024).decode()
+def sendOnePing(mySocket, destAddr, ID):
+   # Header is type (8), code (8), checksum (16), id (16), sequence (16)
 
-   # Send QUIT command and get server response.
-   clientSocket.send("QUIT\r\n".encode())
-   recv6 = clientSocket.recv(1024).decode()
-   clientSocket.close()
+   myChecksum = 0
+   # Make a dummy header with a 0 checksum
+   # struct -- Interpret strings as packed binary data
+   header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, myChecksum, ID, 1)
+   data = struct.pack("d", time.time())
+   # Calculate the checksum on the data and the dummy header.
+   myChecksum = checksum(header + data)
 
+   # Get the right checksum, and put in the header
+
+   if sys.platform == 'darwin':
+       myChecksum = htons(myChecksum) & 0xffff
+   else:
+       myChecksum = htons(myChecksum)
+
+
+   header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, myChecksum, ID, 1)
+   packet = header + data
+
+   mySocket.sendto(packet, (destAddr, 1))  # AF_INET address must be tuple, not str
+
+
+   # Both LISTS and TUPLES consist of a number of objects
+   # which can be referenced by their position number within the object.
+
+def doOnePing(destAddr, timeout):
+   icmp = getprotobyname("icmp")
+
+
+   # SOCK_RAW is a powerful socket type. For more details:   http://sockraw.org/papers/sock_raw
+   mySocket = socket(AF_INET, SOCK_RAW, icmp)
+
+   myID = os.getpid() & 0xFFFF  # Return the current process i
+   sendOnePing(mySocket, destAddr, myID)
+   delay = receiveOnePing(mySocket, myID, timeout, destAddr)
+   mySocket.close()
+   return delay
+
+
+def ping(host, timeout=1):
+   # timeout=1 means: If one second goes by without a reply from the server,      # the client assumes that either the client's ping or the server's pong is lost
+   dest = gethostbyname(host)
+   print("Pinging " + dest + " using Python:")
+   print("")
+   # Calculate vars values and return them
+   #  vars = [str(round(packet_min, 2)), str(round(packet_avg, 2)), str(round(packet_max, 2)),str(round(stdev(stdev_var), 2))]
+   # Send ping requests to a server separated by approximately one second
+   for i in range(0,4):
+       delay = doOnePing(dest, timeout)
+       print(delay)
+       time.sleep(1)  # one second
+
+   return vars
 
 if __name__ == '__main__':
-#    smtp_client(25, 'mail.netscantools.com')
-   smtp_client(1025, '127.0.0.1')
+   ping("google.co.il")
