@@ -5,6 +5,7 @@ import struct
 import time
 import select
 import binascii
+from statistics import stdev
 # Should use stdev
 
 ICMP_ECHO_REQUEST = 8
@@ -57,7 +58,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
        if icmp_type != ICMP_ECHO_REQUEST and packet_id == ID:
          double_bytes = struct.calcsize("d")
          time_sent = struct.unpack("d", recPacket[28:28 + double_bytes])[0]
-         return timeReceived - time_sent
+         return (timeReceived - time_sent) * 1000
 
        # Fill in end
        timeLeft = timeLeft - howLongInSelect
@@ -112,15 +113,19 @@ def ping(host, timeout=1):
    dest = gethostbyname(host)
    print("Pinging " + dest + " using Python:")
    print("")
-   # Calculate vars values and return them
-   #  vars = [str(round(packet_min, 2)), str(round(packet_avg, 2)), str(round(packet_max, 2)),str(round(stdev(stdev_var), 2))]
    # Send ping requests to a server separated by approximately one second
+   delays = []
    for i in range(0,4):
        delay = doOnePing(dest, timeout)
+       delays.append(delay)
        print(delay)
        time.sleep(1)  # one second
-
+   packet_max = sorted(delays, reverse=True)[0]
+   packet_min = sorted(delays)[0]
+   packet_avg = sum(delays)/4.0
+   vars = [str(round(packet_min, 2)), str(round(packet_avg, 2)), str(round(packet_max, 2)),str(round(stdev(delays), 2))]
+   print(vars)
    return vars
 
 if __name__ == '__main__':
-   ping("google.co.il")
+   ping("127.0.0.1")
