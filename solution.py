@@ -161,7 +161,7 @@ def get_route(hostname):
                             "{}".format(dest)
                         ]
                     )
-                    return
+                    return tracelist1
                     #Fill in end
                 else:
                     #Fill in start
@@ -171,10 +171,3 @@ def get_route(hostname):
                     break
             finally:
                 mySocket.close()
-    print(tracelist1)
-    return tracelist1
-
-print("--------------------------------------------")
-print ('www.google.com')
-print("--------------------------------------------")
-get_route("www.google.com") # USA - North America
