@@ -73,6 +73,7 @@ def get_route(hostname):
     tracelist1 = [] #This is your list to use when iterating through each trace
 
     for ttl in range(1,MAX_HOPS):
+        ttl = str(ttl)
         destAddr = gethostbyname(hostname)
         icmp = getprotobyname("icmp")
         mySocket = socket(AF_INET, SOCK_RAW, icmp)
@@ -162,6 +163,3 @@ def get_route(hostname):
                 break
         finally:
             mySocket.close()
-
-def _get_route(something):
-    return [["boo"]]
