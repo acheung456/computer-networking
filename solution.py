@@ -71,7 +71,7 @@ def build_packet():
 def get_route(hostname):
     timeLeft = TIMEOUT
     tracelist1 = [] #This is your list to use when iterating through each trace
-
+    return tracelist1
     for ttl in range(1,MAX_HOPS):
         destAddr = gethostbyname(hostname)
         icmp = getprotobyname("icmp")
