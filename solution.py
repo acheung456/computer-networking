@@ -88,7 +88,6 @@ def get_route(hostname):
             if whatReady[0] == []: # Timeout
                 tracelist1.append([ttl, "*", "Request timed out."])
             recvPacket, addr = mySocket.recvfrom(1024)
-            return tracelist1
             timeReceived = time.time()
             timeLeft = timeLeft - howLongInSelect
             if timeLeft <= 0:
@@ -98,6 +97,7 @@ def get_route(hostname):
 
         else:
             #Fill in start
+            return tracelist1
             header = recvPacket[20:28]
             types, code, checksum, packetID, sequence = struct.unpack("bbHHh", header)
             #Fill in end
