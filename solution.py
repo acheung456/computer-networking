@@ -78,13 +78,13 @@ def get_route(hostname):
         mySocket = socket(AF_INET, SOCK_RAW, icmp)
         mySocket.setsockopt(IPPROTO_IP, IP_TTL, struct.pack('I', ttl))
         mySocket.settimeout(TIMEOUT)
-        return tracelist1
         try:
             d = build_packet()
             mySocket.sendto(d, (hostname, 0))
             t= time.time()
             startedSelect = time.time()
             whatReady = select.select([mySocket], [], [], timeLeft)
+            return tracelist1
             howLongInSelect = (time.time() - startedSelect)
             if whatReady[0] == []: # Timeout
                 tracelist1.append([ttl, "*", "Request timed out."])
