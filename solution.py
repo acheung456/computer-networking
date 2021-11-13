@@ -175,8 +175,8 @@ def _get_route(hostname):
             finally:
                 mySocket.close()
 
-def get_route(arg):
-    return arg
+def get_route(something):
+    return [["boo"]]
 
 alist = get_route("google.com")
 print(alist)
