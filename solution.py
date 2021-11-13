@@ -117,7 +117,7 @@ def get_route(hostname):
                     #Fill in start
                     ip_header = struct.unpack('!BBHHHBBH4s4s', recvPacket[:20])
                     source_ip = inet_ntoa(ip_header[8])
-                    dest = gethostbyaddr(source_ip)[0]
+                    dest, _, _ = gethostbyaddr(source_ip)
                     #Fill in end
                 except herror:   #if the host does not provide a hostname
                     #Fill in start
@@ -133,6 +133,7 @@ def get_route(hostname):
                         [
                             "{}".format(ttl),
                             "{}".format((timeReceived-t)*1000),
+                            "{}".format(source_ip),
                             "{}".format(dest)
                         ]
                     )
@@ -145,6 +146,7 @@ def get_route(hostname):
                         [
                             "{}".format(ttl),
                             "{}".format((timeReceived-t)*1000),
+                            "{}".format(source_ip),
                             "{}".format(dest)
                         ]
                     )
@@ -158,6 +160,7 @@ def get_route(hostname):
                         [
                             "{}".format(ttl),
                             "{}".format((timeReceived-timeSent)*1000),
+                            "{}".format(source_ip),
                             "{}".format(dest)
                         ]
                     )
@@ -171,3 +174,5 @@ def get_route(hostname):
                     break
             finally:
                 mySocket.close()
+# alist = get_route("google.com")
+# print(alist)
