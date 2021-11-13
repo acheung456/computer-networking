@@ -97,7 +97,6 @@ def get_route(hostname):
 
         else:
             #Fill in start
-            return tracelist1
             header = recvPacket[20:28]
             types, code, checksum, packetID, sequence = struct.unpack("bbHHh", header)
             #Fill in end
@@ -111,7 +110,7 @@ def get_route(hostname):
                 #Fill in start
                 dest = "hostname not returnable"
                 #Fill in end
-
+            return tracelist1
             if types == 11:
                 bytes = struct.calcsize("d")
                 timeSent = struct.unpack("d", recvPacket[28:28 +
