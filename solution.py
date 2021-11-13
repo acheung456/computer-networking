@@ -177,6 +177,3 @@ def _get_route(hostname):
 
 def get_route(something):
     return [["boo"]]
-
-alist = get_route("google.com")
-print(alist)
