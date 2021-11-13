@@ -71,13 +71,14 @@ def build_packet():
 def get_route(hostname):
     timeLeft = TIMEOUT
     tracelist1 = [] #This is your list to use when iterating through each trace
-    return tracelist1
+
     for ttl in range(1,MAX_HOPS):
         destAddr = gethostbyname(hostname)
         icmp = getprotobyname("icmp")
         mySocket = socket(AF_INET, SOCK_RAW, icmp)
         mySocket.setsockopt(IPPROTO_IP, IP_TTL, struct.pack('I', ttl))
         mySocket.settimeout(TIMEOUT)
+        return tracelist1
         try:
             d = build_packet()
             mySocket.sendto(d, (hostname, 0))
