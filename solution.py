@@ -68,7 +68,7 @@ def build_packet():
     packet = header + data
     return packet
 
-def get_route(hostname):
+def _get_route(hostname):
     timeLeft = TIMEOUT
     tracelist1 = [] #This is your list to use when iterating through each trace
     tracelist2 = [] #This is your list to contain all traces
@@ -174,5 +174,9 @@ def get_route(hostname):
                     break
             finally:
                 mySocket.close()
-# alist = get_route("google.com")
-# print(alist)
+
+def get_route(arg):
+    return arg
+
+alist = get_route("google.com")
+print(alist)
