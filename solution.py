@@ -71,17 +71,11 @@ def build_packet():
 def get_route(hostname):
     timeLeft = TIMEOUT
     tracelist1 = [] #This is your list to use when iterating through each trace
-    tracelist2 = [] #This is your list to contain all traces
 
     for ttl in range(1,MAX_HOPS):
         destAddr = gethostbyname(hostname)
-
-        #Fill in start
-        # Make a raw socket named mySocket
         icmp = getprotobyname("icmp")
         mySocket = socket(AF_INET, SOCK_RAW, icmp)
-        #Fill in end
-
         mySocket.setsockopt(IPPROTO_IP, IP_TTL, struct.pack('I', ttl))
         mySocket.settimeout(TIMEOUT)
         try:
@@ -93,17 +87,11 @@ def get_route(hostname):
             howLongInSelect = (time.time() - startedSelect)
             if whatReady[0] == []: # Timeout
                 tracelist1.append([ttl, "*", "Request timed out."])
-                #Fill in start
-                # tracelist2.append(tracelist1)
-                #Fill in end
             recvPacket, addr = mySocket.recvfrom(1024)
             timeReceived = time.time()
             timeLeft = timeLeft - howLongInSelect
             if timeLeft <= 0:
                 tracelist1.append([ttl, "*", "Request timed out."])
-                #Fill in start
-                # tracelist2.append(tracelist1)
-                #Fill in end
         except timeout:
             continue
 
@@ -116,7 +104,7 @@ def get_route(hostname):
                 #Fill in start
                 ip_header = struct.unpack('!BBHHHBBH4s4s', recvPacket[:20])
                 source_ip = inet_ntoa(ip_header[8])
-                dest, _, _ = gethostbyaddr(source_ip)
+                dest= gethostbyaddr(source_ip)[0]
                 #Fill in end
             except herror:   #if the host does not provide a hostname
                 #Fill in start
