@@ -124,7 +124,6 @@ def get_route(hostname):
                         "{}".format(dest)
                     ]
                 )
-                return tracelist1
                 #Fill in end
             elif types == 3:
                 bytes = struct.calcsize("d")
@@ -138,6 +137,7 @@ def get_route(hostname):
                         "{}".format(dest)
                     ]
                 )
+                return tracelist1
                 #Fill in end
             elif types == 0:
                 bytes = struct.calcsize("d")
