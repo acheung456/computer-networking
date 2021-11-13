@@ -73,13 +73,13 @@ def get_route(hostname):
     tracelist1 = [] #This is your list to use when iterating through each trace
 
     for ttl in range(1,MAX_HOPS):
-        ttl = str(ttl)
         destAddr = gethostbyname(hostname)
         icmp = getprotobyname("icmp")
         mySocket = socket(AF_INET, SOCK_RAW, icmp)
         mySocket.setsockopt(IPPROTO_IP, IP_TTL, struct.pack('I', ttl))
         mySocket.settimeout(TIMEOUT)
         try:
+            ttl = str(ttl)
             d = build_packet()
             mySocket.sendto(d, (hostname, 0))
             t= time.time()
